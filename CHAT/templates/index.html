@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        #user-list {
+            background-color: lime;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            overflow: auto;
+        }
+        #messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        @media (min-width: 600px) {
+            input {
+                width: calc(50% - 22px);
+                display: inline-block;
+            }
+            button {
+                width: calc(48% - 10px);
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat Room</h1>
+    <input id="username" placeholder="Inserisci il tuo nome">
+    <button onclick="register()">Registrati</button>
+    <div id="user-list">Utenti connessi: </div>
+    <input id="message" placeholder="Scrivi un messaggio">
+    <button onclick="sendMessage()">Invia</button>
+    <div id="messages"></div>
+
+    <script>
+        const socket = io();
+
+        function register() {
+            const username = document.getElementById('username').value;
+            socket.emit('register', username);
+        }
+
+        socket.on('user_list', function(users) {
+            document.getElementById('user-list').innerHTML = 'Utenti connessi: ' + users.join(', ');
+        });
+
+        function sendMessage() {
+            const username = document.getElementById('username').value;
+            const message = document.getElementById('message').value;
+            socket.emit('send_message', { user: username, text: message });
+            document.getElementById('message').value = '';  // Pulisci il campo di input
+        }
+
+        socket.on('receive_message', function(data) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += `<p><strong>${data.user}:</strong> ${data.text}</p>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Scorri verso il basso
+        });
+    </script>
+</body>
+</html>
